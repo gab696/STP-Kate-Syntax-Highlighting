@@ -1,0 +1,190 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE language SYSTEM "language.dtd">
+<language name="STP Routes" version="2.3" kateversion="5.0" section="Other" extensions="*.str" mimetype="text/x-stp-routes" author="Assistant" license="MIT">
+    <highlighting>
+
+        <contexts>
+            <!-- Contexte principal -->
+            <context attribute="Normal" lineEndContext="#stay" name="Normal">
+                <!-- Commentaires -->
+                <RegExpr attribute="Comment" context="#stay" String="^C:.*$"/>
+
+                <!-- Headers des groupes - changent le contexte pour tout ce qui suit -->
+                <RegExpr attribute="RouteDeclaration" context="#stay" String="^S:\d+(/\d+)?:" beginRegion="route"/>
+                <RegExpr attribute="LineDeclaration" context="#stay" String="^L:\d+:" beginRegion="line"/>
+                <RegExpr attribute="AutomationDeclaration" context="#stay" String="^A:\d+/\d+:" beginRegion="automation"/>
+
+                <!-- Cas spécial : S suivi de routes dans les automatismes -->
+                <RegExpr attribute="AutoSection" context="#stay" String="S\d+(/\d+)?(?=,\s*\d+/\d+)" />
+                <RegExpr attribute="AutoRoute" context="#stay" String="(?&lt;=S\d{1,4}(/\d{1,4})?,\s?)\d+/\d+(/A\d+)?"/>
+
+                <!-- Routes automatiques normales -->
+                <RegExpr attribute="AutoRoute" context="#stay" String="\b\d+/\d+/A\d+\b"/>
+                <RegExpr attribute="AutoRoute" context="#stay" String="\b\d+/\d+\b(?!/)"/>
+
+                <!-- ========== COMMANDES AUTOMATISMES EN PREMIER ========== -->
+                <!-- Routes automatiques - DOIVENT être avant toute autre commande -->
+                <!-- Routes automatiques - avec lookbehind négatif pour éviter la capture partielle -->
+                <RegExpr attribute="AutoRoute" context="#stay" String="(?&lt;![A-Z])\d+/\d+/A\d+"/>
+                <RegExpr attribute="AutoRoute" context="#stay" String="(?&lt;![A-Z])\d+/\d+(?!/)"/>
+
+                <!-- ========== COMMANDES LINES (AVANT les autres pour priorité) ========== -->
+                <!-- H avec paramètre DOIT être en premier -->
+                <RegExpr attribute="TrackSection" context="#stay" String="H\d+/[0-7]"/>
+                <!-- Autres sections de trajet -->
+                <RegExpr attribute="TrackSection" context="#stay" String="[GB]\d+/[0-7](\s*,\s*[0-7])?"/>
+
+                <!-- ========== COMMANDES ROUTES ========== -->
+                <!-- Illumination et indicateurs -->
+                <RegExpr attribute="IlluminationCommand" context="#stay" String="L\d+/[01]"/>
+                <RegExpr attribute="IlluminationCommand" context="#stay" String="s\d+/[01]"/>
+                <RegExpr attribute="IlluminationCommand2" context="#stay" String="w\d+/[01]"/>
+                <RegExpr attribute="IlluminationCommand3" context="#stay" String="M\d+/[01]"/>
+                <RegExpr attribute="IlluminationCommand" context="#stay" String="a\d+\.\d+(\s*,\s*\d+)?"/>
+                <RegExpr attribute="IlluminationCommand" context="#stay" String="b\d+/[01]"/>
+
+                <!-- Aiguillages -->
+                <RegExpr attribute="TurnoutCommand" context="#stay" String="W\d+/[0-3](\s*,\s*\d+)?"/>
+
+                <!-- Signaux principaux et distants -->
+                <RegExpr attribute="SignalCommand" context="#stay" String="[ST]\d+/[0-3](\s*,\s*\d+)?(\s*,\s*\d+)?"/>
+                <RegExpr attribute="SignalCommand" context="#stay" String="X\d+/\d+"/>
+
+                <!-- Sections et protections -->
+                <RegExpr attribute="SectionCommand" context="#stay" String="[AP]\d+/[0-7](\s*,\s*[0-7])?"/>
+
+                <!-- Contrôle de route -->
+                <RegExpr attribute="RouteControl" context="#stay" String="[BFRNQ]\d+"/>
+                <RegExpr attribute="RouteControl" context="#stay" String="H\d+(?!/)"/>
+                <RegExpr attribute="RouteControl" context="#stay" String="f[01]"/>
+                <RegExpr attribute="RouteControl" context="#stay" String="h[01]"/>
+                <RegExpr attribute="RouteControl" context="#stay" String="l[01]"/>
+                <!-- Sound control -->
+                <RegExpr attribute="RouteControl" context="#stay" String="Q\d+"/>
+
+                <!-- Connexions et liens -->
+                <RegExpr attribute="ConnectionCommand" context="#stay" String="K\d+/\d+(\s*,\s*\d+)?"/>
+                <RegExpr attribute="ConnectionCommand2" context="#stay" String="[knpr]\d+/\d+"/>
+                <RegExpr attribute="ConnectionCommand2" context="#stay" String="y\d+/[01]"/>
+
+                <!-- Libération et sections -->
+                <RegExpr attribute="ClearingCommand" context="#stay" String="C\d+/[0-2]"/>
+                <RegExpr attribute="ClearingCommand" context="#stay" String="i\d+"/>
+                <RegExpr attribute="ClearingCommand" context="#stay" String="I\d+/[0-4]"/>
+
+                <!-- Verrous -->
+                <RegExpr attribute="LockCommand" context="#stay" String="[UuVv]\d+(/\d+)?"/>
+
+                <!-- Commandes directes (D, d, E, e) - même groupe -->
+                <!-- Commandes d et e avec 3ème paramètre 3 (2ème param: 0-255) -->
+                <RegExpr attribute="DirectCommand" context="#stay" String="[de]\d+/(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[0-9]{1,2})\s*,\s*3"/>
+                <!-- Commandes d et e avec 3ème paramètre 0, 1, 2 ou absent (2ème param: 0-15) -->
+                <RegExpr attribute="DirectCommand" context="#stay" String="[de]\d+/(1[0-5]|[0-9])(\s*,\s*[0-2])?"/>
+                <!-- Commandes D, E, e restent avec l'ancienne regex -->
+                <RegExpr attribute="DirectCommand" context="#stay" String="[DE]\d+/\d+(\s*,\s*\d+)?"/>
+                <RegExpr attribute="DirectCommand" context="#stay" String="x\d+/[1-4]"/>
+                <!-- Commande j - Change engine data (avec paramètres multiples) -->
+                <RegExpr attribute="DirectCommand" context="#stay" String="j\d+/\d+(,&quot;[^&quot;]*&quot;)+"/>
+
+                <!-- Variables et comparaisons -->
+                <RegExpr attribute="VariableCommand" context="#stay" String="[#?*][SF]?\d+[:=>&lt;!]+\d+"/>
+
+                <!-- Tests d'occupation -->
+                <RegExpr attribute="OccupancyTest" context="#stay" String="O\d+"/>
+                <RegExpr attribute="OccupancyTest" context="#stay" String="o\d+/[0-3]"/>
+
+                <!-- Contacts StEin -->
+                <RegExpr attribute="StEinCommand" context="#stay" String="q\d+/[0-7](\s*,\s*\d+)?"/>
+
+                <!-- Transfert de données -->
+                <RegExpr attribute="DataTransfer" context="#stay" String="@\d+/\d+"/>
+
+                <!-- Temporisation -->
+                <RegExpr attribute="TimeCommand" context="#stay" String="z\d+"/>
+
+                <!-- ========== COMMANDES LINES ========== -->
+
+                <!-- Signaux de block -->
+                <RegExpr attribute="BlockSignal" context="#stay" String="S\d+(/\d+)?(\s*,\s*\d+)?(\s*,\s*\d+)?"/>
+
+                <!-- Commandes spécifiques aux lines -->
+                <RegExpr attribute="LineSpecific" context="#stay" String="[DF]\d+"/>
+                <RegExpr attribute="LineSpecific" context="#stay" String="M[012](?!\d)"/>  <!-- M0, M1 ou M2 dans Lines -->
+                <RegExpr attribute="LineSpecific" context="#stay" String="L[01](?!\d)"/>
+
+                <!-- ========== COMMANDES AUTOMATISMES ========== -->
+
+                <!-- Boutons -->
+                <RegExpr attribute="AutoButton" context="#stay" String="T\d+"/>
+
+                <!-- Sections d'automatisme -->
+                <RegExpr attribute="AutoSection" context="#stay" String="S\d+(/\d+)?(?=\s*,|\s*$|\s*-)"/>
+
+                <!-- Random -->
+                <RegExpr attribute="AutoRandom" context="#stay" String="R[01]"/>
+
+                <!-- Temps -->
+                <RegExpr attribute="AutoTime" context="#stay" String="[WH]\d+"/>
+
+                <!-- Groupes de locomotives -->
+                <RegExpr attribute="AutoEngineGroup" context="#stay" String="J\d+(\+\d+)*/\d+(\+\d+)*"/>
+                <RegExpr attribute="AutoEngineGroup" context="#stay" String="J\d+(\+\d+)*"/>
+                <RegExpr attribute="AutoEngineGroup" context="#stay" String="Y\d+(\+\d+)*/\d+(\+\d+)*"/>
+                <RegExpr attribute="AutoEngineGroup" context="#stay" String="Y\d+(\+\d+)*"/>
+
+                <!-- ========== ÉLÉMENTS COMMUNS ========== -->
+                <!-- Continuation de ligne -->
+                <RegExpr attribute="LineContinuation" context="#stay" String="-\s*$"/>
+
+                <!-- Virgule -->
+                <DetectChar attribute="Separator" context="#stay" char=","/>
+
+                <!-- Espaces -->
+                <DetectSpaces />
+            </context>
+        </contexts>
+
+        <itemDatas>
+            <itemData name="Normal" defStyleNum="dsNormal" spellChecking="false"/>
+            <itemData name="Comment" defStyleNum="dsComment" color="#a8abac" italic="true" bold="false" spellChecking="false"/>
+            <itemData name="RouteDeclaration" defStyleNum="dsKeyword" color="#eea9ff" backgroundColor="#633d8b" bold="true" spellChecking="false"/>
+            <itemData name="LineDeclaration" defStyleNum="dsKeyword" color="#9bc8ff" backgroundColor="#46678f" bold="true" spellChecking="false"/>
+            <itemData name="AutomationDeclaration" defStyleNum="dsKeyword" color="#ffbcbf" backgroundColor="#6c3030" bold="true" spellChecking="false"/>
+            <itemData name="TurnoutCommand" defStyleNum="dsFunction" color="#98C379" bold="true" spellChecking="false"/>
+            <itemData name="SignalCommand" defStyleNum="dsFunction" color="#E5C07B" bold="true" spellChecking="false"/>
+            <itemData name="SectionCommand" defStyleNum="dsFunction" color="#56B6C2" bold="true" spellChecking="false"/>
+            <itemData name="IlluminationCommand" defStyleNum="dsFunction" color="#ffbb7c" bold="true" spellChecking="false"/> <!-- Pour s -->
+            <itemData name="IlluminationCommand2" defStyleNum="dsFunction" color="#9370DB" bold="true" spellChecking="false"/> <!-- Pour w (violet) -->
+            <itemData name="IlluminationCommand3" defStyleNum="dsFunction" color="#FF69B4" bold="true" spellChecking="false"/> <!-- Pour M (rose) -->
+            <itemData name="RouteControl" defStyleNum="dsControlFlow" color="#C678DD" bold="true" spellChecking="false"/>
+            <itemData name="ConnectionCommand" defStyleNum="dsFunction" color="#61AFEF" bold="true" spellChecking="false"/>
+            <itemData name="ConnectionCommand2" defStyleNum="dsFunction" color="#56B6C2" bold="true" spellChecking="false"/>
+            <itemData name="ClearingCommand" defStyleNum="dsFunction" color="#E06C75" bold="true" spellChecking="false"/>
+            <itemData name="LockCommand" defStyleNum="dsFunction" color="#E06C75" bold="true" spellChecking="false"/>
+            <itemData name="DirectCommand" defStyleNum="dsFunction" color="#fe6b5e" bold="true" spellChecking="false"/>
+            <itemData name="VariableCommand" defStyleNum="dsVariable" color="#E5C07B" bold="true" spellChecking="false"/>
+            <itemData name="OccupancyTest" defStyleNum="dsFunction" color="#C678DD" bold="true" spellChecking="false"/>
+            <itemData name="StEinCommand" defStyleNum="dsFunction" color="#D19A66" bold="true" spellChecking="false"/>
+            <itemData name="DataTransfer" defStyleNum="dsFunction" color="#61AFEF" bold="true" spellChecking="false"/>
+            <itemData name="TimeCommand" defStyleNum="dsFunction" color="#eef9ba" bold="true" spellChecking="false"/>
+            <itemData name="TrackSection" defStyleNum="dsFunction" color="#98C379" bold="true" spellChecking="false"/>
+            <itemData name="BlockSignal" defStyleNum="dsFunction" color="#E5C07B" bold="true" spellChecking="false"/>
+            <itemData name="LineSpecific" defStyleNum="dsFunction" color="#61AFEF" bold="true" spellChecking="false"/>
+            <itemData name="AutoButton" defStyleNum="dsFunction" color="#E5C07B" bold="true" spellChecking="false"/>
+            <itemData name="AutoSection" defStyleNum="dsFunction" color="#56B6C2" bold="true" spellChecking="false"/>
+            <itemData name="AutoRandom" defStyleNum="dsFunction" color="#C678DD" bold="true" spellChecking="false"/>
+            <itemData name="AutoTime" defStyleNum="dsFunction" color="#D19A66" bold="true" spellChecking="false"/>
+            <itemData name="AutoEngineGroup" defStyleNum="dsFunction" color="#98C379" bold="true" spellChecking="false"/>
+            <itemData name="AutoRoute" defStyleNum="dsFunction" color="#61AFEF" bold="true" spellChecking="false"/>
+            <itemData name="LineContinuation" defStyleNum="dsOperator" color="#FFFFFF"  bold="true" spellChecking="false"/>
+            <itemData name="Separator" defStyleNum="dsOperator" color="#FFFFFF"  bold="true" spellChecking="false"/>
+        </itemDatas>
+    </highlighting>
+
+    <general>
+        <comments>
+            <comment name="singleLine" start="C:" />
+        </comments>
+        <keywords casesensitive="1" />
+    </general>
+</language>
