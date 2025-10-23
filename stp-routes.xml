@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE language SYSTEM "language.dtd">
-<language name="STP Routes" version="2.3" kateversion="5.0" section="Other" extensions="*.str" mimetype="text/x-stp-routes" author="Assistant" license="MIT">
+<language name="STP Routes" version="2.3" kateversion="5.0" section="Other" extensions="*.str" mimetype="text/x-stp-routes" author="Gabriele Fusco" license="MIT">
     <highlighting>
 
         <contexts>
